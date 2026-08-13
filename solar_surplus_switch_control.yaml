@@ -1,22 +1,82 @@
-alias: 光伏盈余控制热泵
-description: 卖电 > 200W 时点击一次开启热泵，卖电 < 10W 时点击一次关闭热泵
-triggers:
-  - entity_id:
-      - sensor.ecomain_003516000993_local_main_all_power_rt
-    below: -200
+blueprint:
+  name: "光伏盈余控制开关"
+  description: "基于光伏卖电功率自动控制大功率设备（热泵、充电桩等）的开关。"
+  domain: automation
+  input:
+    export_power_sensor:
+      name: 卖电功率传感器
+      description: "监测向电网卖电的功率传感器（负值表示卖电，正值表示买电）"
+      selector:
+        entity:
+          domain: sensor
+    target_switch:
+      name: 目标开关
+      description: "需要控制的手指机器人或开关实体"
+      selector:
+        entity:
+          domain: switch
+    state_switch:
+      name: 状态跟踪开关（可选）
+      description: "用于记录设备状态的辅助开关，可防止重复操作"
+      default: ""
+      selector:
+        entity:
+          domain: input_boolean
+    on_threshold:
+      name: "开启阈值 (W)"
+      description: "卖电功率持续低于此值时开启开关（负值表示卖电）"
+      default: -200
+      selector:
+        number:
+          min: -500
+          max: -10
+          unit_of_measurement: "W"
+    off_threshold:
+      name: "关闭阈值 (W)"
+      description: "卖电功率持续高于此值时关闭开关"
+      default: -10
+      selector:
+        number:
+          min: -50
+          max: 50
+          unit_of_measurement: "W"
+    on_delay:
+      name: "开启延迟 (秒)"
+      description: "卖电功率持续低于开启阈值的秒数"
+      default: 60
+      selector:
+        number:
+          min: 5
+          max: 300
+          unit_of_measurement: "s"
+    off_delay:
+      name: "关闭延迟 (秒)"
+      description: "卖电功率持续高于关闭阈值的秒数"
+      default: 60
+      selector:
+        number:
+          min: 5
+          max: 300
+          unit_of_measurement: "s"
+
+# ========== 自动化模板 ==========
+mode: single
+
+trigger:
+  - platform: numeric_state
+    entity_id: !input export_power_sensor
+    below: !input on_threshold
     for:
-      seconds: 60
+      seconds: !input on_delay
     id: surplus_on
-    trigger: numeric_state
-  - entity_id:
-      - sensor.ecomain_003516000993_local_main_all_power_rt
-    above: -10
+  - platform: numeric_state
+    entity_id: !input export_power_sensor
+    above: !input off_threshold
     for:
-      seconds: 60
+      seconds: !input off_delay
     id: surplus_off
-    trigger: numeric_state
-conditions: []
-actions:
+
+action:
   - choose:
       - conditions:
           - condition: trigger
@@ -24,16 +84,16 @@ actions:
         sequence:
           - if:
               - condition: state
-                entity_id: input_boolean.heat_pump_state
+                entity_id: !input state_switch
                 state: "off"
             then:
               - service: switch.toggle
                 target:
-                  entity_id: switch.adp_cn_1208742996_adfbt6_switch_a_p_3_1
+                  entity_id: !input target_switch
                 data: {}
               - service: input_boolean.turn_on
                 target:
-                  entity_id: input_boolean.heat_pump_state
+                  entity_id: !input state_switch
                 data: {}
       - conditions:
           - condition: trigger
@@ -41,15 +101,14 @@ actions:
         sequence:
           - if:
               - condition: state
-                entity_id: input_boolean.heat_pump_state
+                entity_id: !input state_switch
                 state: "on"
             then:
               - service: switch.toggle
                 target:
-                  entity_id: switch.adp_cn_1208742996_adfbt6_switch_a_p_3_1
+                  entity_id: !input target_switch
                 data: {}
               - service: input_boolean.turn_off
                 target:
-                  entity_id: input_boolean.heat_pump_state
+                  entity_id: !input state_switch
                 data: {}
-mode: single
