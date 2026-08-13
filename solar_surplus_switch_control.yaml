@@ -8,32 +8,24 @@ blueprint:
   input:
     grid_power_sensor:
       name: 电网功率传感器
-      description: >
-        提供当前总有功功率的传感器。负值表示向电网送电（光伏盈余），
-        正值表示从电网取电。例如 sensor.ecomain_xxx_main_all_power_rt
+      description: 负值表示向电网送电（光伏盈余），正值表示从电网取电
       selector:
         entity:
-          filter:
-            - domain: sensor
-              device_class: power
+          domain: sensor
 
     heat_pump_switch:
       name: 热泵控制开关
       description: 控制热泵启停的开关实体（toggle 一次切换状态）
       selector:
-        target:
-          entity:
-            - domain: switch
+        entity:
+          domain: switch
 
     state_tracker:
       name: 状态跟踪开关
-      description: >
-        一个 input_boolean，用于记录热泵当前是否已被本自动化开启。
-        需要你预先在 帮助者(Helpers) 中创建一个开关类型的实体。
+      description: 一个 input_boolean，用于记录热泵当前状态，需预先在帮助者中创建
       selector:
         entity:
-          filter:
-            - domain: input_boolean
+          domain: input_boolean
 
     turn_on_threshold:
       name: 启动阈值 (W)
@@ -43,8 +35,8 @@ blueprint:
         number:
           min: -5000
           max: 0
+          step: 10
           unit_of_measurement: W
-          mode: box
 
     turn_off_threshold:
       name: 关闭阈值 (W)
@@ -54,32 +46,39 @@ blueprint:
         number:
           min: -5000
           max: 0
+          step: 10
           unit_of_measurement: W
-          mode: box
 
     trigger_duration:
-      name: 触发持续时间
+      name: 触发持续时间 (秒)
       description: 功率越过阈值后需持续多久才执行动作，防止频繁启停
-      default:
-        seconds: 60
+      default: 60
       selector:
-        duration:
+        number:
+          min: 5
+          max: 600
+          step: 5
+          unit_of_measurement: seconds
 
+mode: single
 trigger:
-  - trigger: numeric_state
+  - platform: numeric_state
     entity_id: !input grid_power_sensor
     below: !input turn_on_threshold
-    for: !input trigger_duration
+    for:
+      seconds: !input trigger_duration
     id: surplus_on
-  - trigger: numeric_state
+  - platform: numeric_state
     entity_id: !input grid_power_sensor
     above: !input turn_off_threshold
-    for: !input trigger_duration
+    for:
+      seconds: !input trigger_duration
     id: surplus_off
 
-condition: []
-
 action:
+  - variables:
+      switch_entity: !input heat_pump_switch
+      tracker_entity: !input state_tracker
   - choose:
       - conditions:
           - condition: trigger
@@ -91,12 +90,11 @@ action:
                 state: "off"
             then:
               - service: switch.toggle
-                target: !input heat_pump_switch
-                data: {}
+                target:
+                  entity_id: "{{ switch_entity }}"
               - service: input_boolean.turn_on
                 target:
-                  entity_id: !input state_tracker
-                data: {}
+                  entity_id: "{{ tracker_entity }}"
 
       - conditions:
           - condition: trigger
@@ -108,11 +106,8 @@ action:
                 state: "on"
             then:
               - service: switch.toggle
-                target: !input heat_pump_switch
-                data: {}
+                target:
+                  entity_id: "{{ switch_entity }}"
               - service: input_boolean.turn_off
                 target:
-                  entity_id: !input state_tracker
-                data: {}
-
-mode: single
+                  entity_id: "{{ tracker_entity }}"
