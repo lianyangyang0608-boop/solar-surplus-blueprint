@@ -5,8 +5,6 @@ blueprint:
     持续指定时间后开启热泵；当电网功率高于关闭阈值（即盈余不足）
     持续指定时间后关闭热泵。通过 input_boolean 跟踪状态，避免重复触发。
   domain: automation
-  min_version: 2024.1.0
-  source_url: ""
   input:
     grid_power_sensor:
       name: 电网功率传感器
