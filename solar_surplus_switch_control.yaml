@@ -1,35 +1,36 @@
 blueprint:
   name: PV Surplus Heat Pump Controller
   description: >
-    光伏盈余自动控制热泵烧热水。当电网功率低于启动阈值（即卖电足够多）
-    持续指定时间后开启热泵；当电网功率高于关闭阈值（即盈余不足）
-    持续指定时间后关闭热泵。通过 input_boolean 跟踪状态，避免重复触发。
+    Automatically run your heat pump water heater on solar surplus.
+    Turns on when grid power drops below the ON threshold (exporting enough),
+    turns off when grid power rises above the OFF threshold (surplus gone).
+    Uses an input_boolean to track state and avoid repeated toggling.
   domain: automation
   input:
     grid_power_sensor:
-      name: 电网功率传感器
-      description: 负值表示向电网送电（光伏盈余），正值表示从电网取电
+      name: Grid Power Sensor
+      description: Negative means exporting to grid (solar surplus), positive means importing.
       selector:
         entity:
           domain: sensor
 
     heat_pump_switch:
-      name: 热泵控制开关
-      description: 控制热泵启停的开关实体（toggle 一次切换状态）
+      name: Heat Pump Switch
+      description: Switch entity that toggles the heat pump on/off.
       selector:
         entity:
           domain: switch
 
     state_tracker:
-      name: 状态跟踪开关
-      description: 一个 input_boolean，用于记录热泵当前状态，需预先在帮助者中创建
+      name: State Tracker
+      description: An input_boolean to remember whether the heat pump is currently on. Create one in Helpers first.
       selector:
         entity:
           domain: input_boolean
 
     turn_on_threshold:
-      name: 启动阈值 (W)
-      description: 电网功率低于此值（即卖电功率大于此值）时开启热泵
+      name: Turn On Threshold (W)
+      description: Grid power below this value (exporting more than this) turns the heat pump on.
       default: -200
       selector:
         number:
@@ -39,8 +40,8 @@ blueprint:
           unit_of_measurement: W
 
     turn_off_threshold:
-      name: 关闭阈值 (W)
-      description: 电网功率高于此值（即卖电功率小于此值）时关闭热泵
+      name: Turn Off Threshold (W)
+      description: Grid power above this value (surplus too low) turns the heat pump off.
       default: -10
       selector:
         number:
@@ -50,8 +51,8 @@ blueprint:
           unit_of_measurement: W
 
     trigger_duration:
-      name: 触发持续时间 (秒)
-      description: 功率越过阈值后需持续多久才执行动作，防止频繁启停
+      name: Trigger Duration (seconds)
+      description: How long the threshold must be crossed before acting, prevents rapid toggling.
       default: 60
       selector:
         number:
