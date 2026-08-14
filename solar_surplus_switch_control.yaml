@@ -31,7 +31,7 @@ blueprint:
     turn_on_threshold:
       name: Turn On Threshold (W)
       description: Grid power below this value (exporting more than this) turns the heat pump on.
-      default: -200
+      default: -900
       selector:
         number:
           min: -5000
