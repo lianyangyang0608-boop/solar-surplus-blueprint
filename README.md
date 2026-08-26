@@ -13,9 +13,9 @@ I have a PV system, and on sunny days I was exporting a lot of power back to the
 
 So I built this: whenever there's enough solar surplus, the heat pump turns on and heats the water for free. Hot water stores well, so it's basically banking that excess solar energy.
 
-<div align="center">
-<img src="./images/Scene diagram.png" width="500">
-</div>
+<p align="center">
+  <img src="images.images/Scene diagram.png" width="900" alt="solar-surplus-blueprint">
+</p>
 
 ## ⚡ How it works
 
@@ -27,10 +27,10 @@ The logic is simple but effective:
 
 The 890W gap between thresholds + 60s delay means no rapid cycling, even when clouds pass over.
 
-<div style="display:flex; justify-content:center; gap:16px; flex-wrap:wrap; margin: 12px 0;">
-  <img src="./images/step-on-1.png" width="200">
-  <img src="./images/step-off-1.png" width="200">
-</div>
+<p align="center">
+  <img src="images.images/step-on-1.png" width="400" alt="solar-surplus-blueprint">
+   <img src="images.images/step-off-1.png" width="400" alt="solar-surplus-blueprint">
+</p>
 
 ## 🔥 Key Features
 
@@ -45,9 +45,9 @@ The 890W gap between thresholds + 60s delay means no rapid cycling, even when cl
 Here's a typical sunny day at my place:
 
 You can see the heat pump kicks in right when export ramps up, and shuts off as soon as surplus drops. No grid power used for heating that day.
-<div align="center">
- <img src="./images/diagram.png" width="500">
-</div>
+<p align="center">
+  <img src="images.images/diagram.png" width="700" alt="solar-surplus-blueprint">
+</p>
 
 ## 📋 What you need
 
@@ -66,10 +66,9 @@ You can see the heat pump kicks in right when export ramps up, and shuts off as 
 | Turn Off Threshold | Grid power above this = turn off | -10W |
 | Trigger Duration | Seconds the condition must hold | 60s |
 
-<div align="center">
-  <img src="./images/config-ui.png" width="500">
-</div>
-
+<p align="center">
+  <img src="images.images/config-ui.png" width="700" alt="solar-surplus-blueprint">
+</p>
 
 ## 🚀 Setup guide
 
